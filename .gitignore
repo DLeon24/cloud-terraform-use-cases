@@ -1,0 +1,45 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars.json
+*.auto.tfvars
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+*.tfplan
+*.plan
+
+# Keep lock files for reproducible applies (do not ignore):
+# .terraform.lock.hcl
+
+# Local / sensitive variable files (uncomment if you use *.local.tfvars)
+# *.local.tfvars
+
+# Lambda / archives built by Terraform archive_file or scripts
+**/*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors / IDEs
+.idea/
+*.swp
+*.swo
+*~
