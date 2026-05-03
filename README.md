@@ -159,9 +159,3 @@ Use cases are aimed at **AWS Free Tier**–friendly footprints where applicable:
 - EC2 module: constrained to `t2.micro` / `t3.micro` when used.
 
 > **Assumption:** The `terraform` AWS CLI profile targets a personal or sandbox account. UC-00 uses **local** Terraform state — no remote backend is configured in-repo. For collaboration, consider S3 + DynamoDB locking.
-
----
-
-## License
-
-Not specified. If you plan to share this portfolio publicly, consider adding an [MIT](https://opensource.org/licenses/MIT) or [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) license file.
