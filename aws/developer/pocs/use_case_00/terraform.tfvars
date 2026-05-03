@@ -4,7 +4,7 @@ handler           = "lambda_function.lambda_handler"
 iam_role_name     = "LambdaOrderRole"
 api_resource_path = "orders"
 http_method       = "GET"
-domain_name       = "uc-00.dleoncloud.com"
+domain_name       = "<your-domain-name>"
 # By default the custom domain is not created until you set true (with ACM already Issued).
 # enable_custom_domain = true
 
