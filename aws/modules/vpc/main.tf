@@ -1,7 +1,7 @@
 resource "aws_vpc" "this" {
   cidr_block           = var.cidr_block
-  enable_dns_hostnames = false
-  enable_dns_support   = true
+  enable_dns_hostnames = var.enable_dns_hostnames
+  enable_dns_support   = var.enable_dns_support
   instance_tenancy     = "default"
   tags                 = local.common_tags
 }
