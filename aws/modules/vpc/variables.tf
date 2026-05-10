@@ -18,6 +18,14 @@ variable "cidr_block" {
   type        = string
 }
 
+variable "subnets" {
+  description = "Subnets for the VPC"
+  type = map(object({
+    cidr_block        = string
+    availability_zone = string
+  }))
+}
+
 variable "tags" {
   description = "Tags for resources"
   type        = map(string)
