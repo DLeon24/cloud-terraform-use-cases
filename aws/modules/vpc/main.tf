@@ -13,7 +13,7 @@ resource "aws_subnet" "this" {
   availability_zone       = each.value.availability_zone
   map_public_ip_on_launch = each.value.map_public_ip_on_launch
   tags = merge(local.common_tags, {
-    Name = "subnet-${var.project}-${each.key}-${each.value.availability_zone}"
+    Name = "${local.prefix}-${each.value.availability_zone}-${each.key}-subnet"
   })
 }
 
@@ -21,7 +21,7 @@ resource "aws_route_table" "this" {
   for_each = var.subnets
   vpc_id   = aws_vpc.this.id
   tags = merge(local.common_tags, {
-    Name = "rtb-${var.project}-${each.key}-${each.value.availability_zone}"
+    Name = "${local.prefix}-${each.value.availability_zone}-${each.key}-rtb"
   })
 }
 
@@ -35,7 +35,7 @@ resource "aws_internet_gateway" "this" {
   count  = var.create_internet_gateway ? 1 : 0
   vpc_id = aws_vpc.this.id
   tags = merge(local.common_tags, {
-    Name = "${local.vpc_name}-igw"
+    Name = "${local.prefix}-${var.region}-igw"
   })
 }
 
@@ -54,7 +54,7 @@ resource "aws_eip" "this" {
   domain               = "vpc"
   network_border_group = var.region
   tags = merge(local.common_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-eip"
+    Name = "${local.prefix}-${each.key}-eip"
   })
 }
 
@@ -64,7 +64,7 @@ resource "aws_nat_gateway" "this" {
   subnet_id     = aws_subnet.this[each.value].id
 
   tags = merge(local.common_tags, {
-    Name = "${var.project}-${var.environment}-${each.key}-ngw"
+    Name = "${local.prefix}-${each.key}-ngw"
   })
 
   depends_on = [aws_internet_gateway.this]
