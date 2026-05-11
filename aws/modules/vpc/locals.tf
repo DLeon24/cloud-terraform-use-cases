@@ -1,5 +1,9 @@
 locals {
-  vpc_name = "${var.environment}-${var.project}-vpc-${var.region}"
+  vpc_name = "vpc-${var.project}-${var.environment}"
+  # One public subnet key per AZ; used to create one NAT per AZ.
+  public_subnet_key_by_az = {
+    for k, v in var.subnets : v.availability_zone => k if v.type == "public"
+  }
   common_tags = merge(
     var.tags,
     {

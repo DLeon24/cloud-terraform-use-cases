@@ -23,6 +23,7 @@ variable "subnets" {
   type = map(object({
     cidr_block              = string
     availability_zone       = string
+    type                    = string
     map_public_ip_on_launch = bool
   }))
 }
@@ -37,6 +38,17 @@ variable "enable_dns_support" {
   description = "Enable DNS support for the VPC"
   type        = bool
   default     = true
+}
+
+variable "create_internet_gateway" {
+  description = "Create an Internet Gateway for the VPC"
+  type        = bool
+}
+
+variable "create_nat_gateway" {
+  description = "Create a NAT Gateway in the public subnet"
+  type        = bool
+  default     = false
 }
 
 variable "tags" {
