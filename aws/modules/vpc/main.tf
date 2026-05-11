@@ -73,10 +73,9 @@ resource "aws_nat_gateway" "this" {
 resource "aws_route" "private_nat" {
   for_each = {
     for k, v in var.subnets :
-    k => v if var.create_nat_gateway && v.type == "private"
+    k => v if var.create_nat_gateway && v.type == "private" && v.nat_gateway_egress
   }
   route_table_id         = aws_route_table.this[each.key].id
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = aws_nat_gateway.this[each.value.availability_zone].id
 }
-

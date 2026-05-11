@@ -25,6 +25,7 @@ variable "subnets" {
     availability_zone       = string
     type                    = string
     map_public_ip_on_launch = bool
+    nat_gateway_egress      = optional(bool)
   }))
 }
 
