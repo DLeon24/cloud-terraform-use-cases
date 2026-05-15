@@ -1,5 +1,5 @@
 locals {
-  lambda_name = "${var.environment}-${var.project}-lambda-${var.region}"
+  lambda_name = "${var.environment}-${var.project}-${var.region}-lambda"
   common_tags = merge(
     var.tags,
     {
