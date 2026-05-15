@@ -8,23 +8,28 @@ A hands-on portfolio of **Infrastructure-as-Code** use cases built with [Terrafo
 
 ## Use case index
 
-POCs are grouped by **track**: developer-focused scenarios under `aws/developer/pocs/` and architecture-focused scenarios under `aws/architecture/pocs/` (added as you publish them). Each POC lives in its own `use_case_NN/` folder and ships with a **`README.md`** that is the **canonical documentation** for goals, architecture, Terraform wiring, DNS, and how to test.
+POCs are grouped by **track**:
 
-**Start here:** pick a row and open the linked README — the root file you are reading only summarizes the repo and links out to each use case.
+| Track | Path | Focus |
+|-------|------|--------|
+| **Developer** | `aws/developer/pocs/` | Serverless APIs, Lambda, API Gateway |
+| **CloudOps** | `aws/cloudops/pocs/` | VPC networking, load balancing, compute, databases |
 
-### AWS Architecture (`aws/architecture/pocs/`)
+Each POC lives in `use_case_NN/` and ships with a **`README.md`** that is the **canonical documentation** for goals, architecture, Terraform wiring, and how to test.
 
-No `use_case_*` folders here yet. When you add architecture-track POCs, place them under `aws/architecture/pocs/use_case_NN/` and extend the table below (same README-per-POC convention as developer).
+**Start here:** pick a row below and open the linked README — this file only summarizes the repo and links out to each use case.
+
+### AWS CloudOps (`aws/cloudops/pocs/`)
 
 | ID | Summary | Folder | Documentation |
 |----|---------|--------|----------------|
-| — | *Coming soon* | — | — |
+| **UC-00** | Three-tier VPC (ALB, private EC2/ASG, Multi-AZ RDS) with NAT egress.<br><br>**Services:** VPC, subnets, IGW, NAT Gateway, ALB, ASG, EC2 launch template, RDS (PostgreSQL), IAM instance profile (SSM).<br>**Pattern:** Public tier (ALB + NAT), private app tier (ASG in two AZs), private data tier (RDS DB subnet group); app subnets egress via NAT per AZ. | [`use_case_00/`](aws/cloudops/pocs/use_case_00/) | **[README.md](aws/cloudops/pocs/use_case_00/README.md)** |
 
 ### AWS Developer (`aws/developer/pocs/`)
 
 | ID | Summary | Folder | Documentation |
 |----|---------|--------|----------------|
-| **UC-00** | Regional REST API (API Gateway) + Lambda with `dev`/`prod` stages, aligned aliases, optional ACM custom domain.<br><br>**Services:** API Gateway (REST, regional), Lambda (Python), IAM, ACM; optional custom domain + base path mappings.<br>**Pattern:** Stages `dev` / `prod` map 1:1 to Lambda aliases `dev` / `prod`; stage variable `lambdaAlias` selects the alias in the integration URI. | [`use_case_00/`](aws/developer/pocs/use_case_00/) | **[README.md](aws/developer/pocs/use_case_00/README.md)** |
+| **UC-00** | REST API + Lambda with `dev`/`prod` stages, aligned aliases, optional ACM custom domain.<br><br>**Services:** API Gateway (REST, regional), Lambda (Python), IAM, ACM; optional custom domain + base path mappings.<br>**Pattern:** Stages `dev` / `prod` map 1:1 to Lambda aliases `dev` / `prod`; stage variable `lambdaAlias` selects the alias in the integration URI. | [`use_case_00/`](aws/developer/pocs/use_case_00/) | **[README.md](aws/developer/pocs/use_case_00/README.md)** |
 
 ### Azure (planned)
 
@@ -40,21 +45,23 @@ cloud-terraform-use-cases/
 │   ├── modules/                            # shared Terraform modules (all tracks)
 │   │   ├── acm-certificate/
 │   │   ├── api_gateway/
+│   │   ├── asg/
 │   │   ├── ec2/
+│   │   ├── elb/
 │   │   ├── iam/
-│   │   └── lambda/
-│   ├── architecture/                       # architecture-track POCs (pocs/use_case_NN/ as you add them)
+│   │   ├── lambda/
+│   │   ├── rds/
+│   │   └── vpc/
+│   ├── cloudops/
+│   │   └── pocs/
+│   │       └── use_case_00/                # Three-tier VPC + ALB + ASG + RDS
 │   └── developer/
 │       └── pocs/
-│           └── use_case_00/
-│               ├── README.md               # UC-00 detailed docs (canonical)
-│               ├── main.tf                 # source = ../../../modules/...
-│               ├── ...
-│               └── functions/
+│           └── use_case_00/                # API Gateway + Lambda stages/aliases      
 ├── azure/
-│   └── README.md                           # placeholder (“coming soon”)
+│   └── README.md
 ├── .gitignore
-└── README.md                               ← index + repo-wide notes
+└── README.md
 ```
 
 ### Conventions
@@ -62,100 +69,63 @@ cloud-terraform-use-cases/
 | Convention | Detail |
 |---|---|
 | **Module path** | `aws/modules/<service>` — shared, composable building blocks for AWS POCs. |
-| **POC path** | `aws/<track>/pocs/use_case_NN/` where `<track>` is `developer` or `architecture` — each POC is a root module; **each must have `README.md`**. |
-| **Module source** | From `aws/<track>/pocs/use_case_NN/`, reference shared code as `source = "../../../modules/<name>"`. |
-| **Provider** | AWS provider **v6.x** (`hashicorp/aws ~> 6.0`), configured with a local named profile (`terraform`). |
-| **Tagging** | Modules merge `var.tags` with `Environment`, `Project`, and `Region` where applicable. |
-| **Lambda packaging** | `data.archive_file` builds a `.zip` at plan time; `*.zip` is git-ignored. |
-| **Lock file** | `.terraform.lock.hcl` is committed for reproducible applies. State files (`*.tfstate`) are git-ignored. |
+| **POC path** | `aws/<track>/pocs/use_case_NN/` where `<track>` is `developer` or `cloudops`. |
+| **Module source** | From a POC folder: `source = "../../../modules/<name>"`. |
+| **Provider** | AWS **v6.x** (`hashicorp/aws ~> 6.0`), profile `terraform`. Developer UC-00 also uses `hashicorp/archive` for Lambda zip packaging. |
+| **Tagging** | Modules merge `var.tags` with `Environment`, `Project`, and `Region`. |
+| **Lock file** | `.terraform.lock.hcl` committed per POC. `*.tfstate` is git-ignored. |
 
 ---
 
 ## Reusable modules
 
-All AWS modules live under `aws/modules/` and follow `main.tf` / `variables.tf` / `outputs.tf` / `locals.tf` where present.
+All modules under `aws/modules/` use `main.tf`, `variables.tf`, `outputs.tf`, and `locals.tf` where needed.
 
-### `iam`
+| Module | Purpose | Used by |
+|--------|---------|---------|
+| `vpc` | VPC, subnets, IGW, NAT (per AZ), route tables, security groups | CloudOps UC-00 |
+| `ec2` | `aws_instance` or `aws_launch_template` (`compute_mode`); optional `user_data` and IAM instance profile | CloudOps UC-00 |
+| `asg` | Auto Scaling Group + launch template + target group registration | CloudOps UC-00 |
+| `elb` | Application Load Balancer, listener, target group, health check | CloudOps UC-00 |
+| `rds` | RDS instance + DB subnet group (Multi-AZ, engine/version, credentials) | CloudOps UC-00 |
+| `iam` | IAM role, inline/managed policies, optional EC2 instance profile | Developer UC-00, CloudOps UC-00 |
+| `lambda` | Lambda function, versions, aliases, invoke permissions | Developer UC-00 |
+| `api_gateway` | Regional REST API, stages, Lambda proxy integration, optional custom domain | Developer UC-00 |
+| `acm-certificate` | DNS-validated ACM certificate | Developer UC-00 (optional) |
 
-Creates an IAM role with an assume-role policy, optional inline policies (`map(string)`), and optional managed policy ARN attachments.
+### Highlights
 
-| Input | Description |
-|---|---|
-| `iam_role_name` | Name for the IAM role |
-| `assume_role_policy` | JSON assume-role policy document |
-| `inline_policies` | Map of inline policy name → JSON body (default `{}`) |
-| `managed_policy_arns` | List of managed policy ARNs to attach (default `[]`) |
+- **`vpc`:** Subnet map with `nat_gateway_egress` per key; security groups defined in `terraform.tfvars` and referenced by logical name (`alb`, `app`, `data`).
+- **`ec2`:** `compute_mode = "launch_template"` for ASG; `iam_instance_profile` optional via `dynamic` block on the launch template.
+- **`iam`:** `create_instance_profile = true` in CloudOps for SSM (`AmazonSSMManagedInstanceCore`).
+- **`api_gateway`:** Stage variable `lambdaAlias` routes to the matching Lambda alias per stage.
 
-### `lambda`
-
-Creates a Lambda function from a local zip, publishes versions, creates aliases (`for_each`), and grants invoke permissions per alias.
-
-| Input | Description |
-|---|---|
-| `filename` / `source_code_hash` | Zip path and hash for change detection |
-| `runtime` / `handler` | Lambda runtime and entry point |
-| `role_arn` | Execution role ARN |
-| `publish` | Whether to publish a new version on each deploy |
-| `aliases` | Map of alias name → version (`"$LATEST"` or a version number) |
-| `principal` / `source_arn` | Invoke permission grant (e.g. API Gateway) |
-
-### `api_gateway`
-
-Creates a regional REST API with a single resource and method, `AWS_PROXY` integration to Lambda using `$stageVariables.lambdaAlias`, dynamic stages via `for_each`, and optional custom domain with base-path mappings.
-
-| Input | Description |
-|---|---|
-| `api_resource_path` / `http_method` | Resource path part and HTTP verb |
-| `lambda_arn` | Target Lambda function ARN (alias resolved at runtime via stage variable) |
-| `stages` | Map of stage name → Lambda alias ARN |
-| `enable_custom_domain` | Toggle for custom domain creation |
-| `custom_domain_base_path_mappings` | Map of base path → stage name |
-
-### `acm-certificate`
-
-Requests a DNS-validated ACM certificate (RSA 2048) with `create_before_destroy` lifecycle.
-
-| Input | Description |
-|---|---|
-| `domain_name` | FQDN for the certificate |
-
-### `ec2`
-
-Provisions a single EC2 instance with validation that restricts `instance_type` to `t2.micro` or `t3.micro` (free-tier friendly).
-
-| Input | Description |
-|---|---|
-| `ami_id` | AMI to launch |
-| `instance_type` | Instance type (constrained to `t2.micro` / `t3.micro`) |
-
-> **Note:** The EC2 module is not referenced by any POC yet — it is available as a building block for future use cases (document each new consumption in the corresponding `use_case_NN/README.md`).
+Per-module inputs and outputs: see each module’s `variables.tf` / `outputs.tf` and the POC README **Terraform (summary)** section.
 
 ---
 
 ## Prerequisites
 
-| Requirement | Version / Detail |
+| Requirement | Detail |
 |---|---|
-| **Terraform** | >= 1.x (provider lock pins `hashicorp/aws 6.43.0` in UC-00) |
-| **AWS CLI** | Configured with a named profile `terraform` that has sufficient permissions |
-| **Python** | 3.x (Lambda runtime is set per POC in `terraform.tfvars`) |
-| **DNS provider** | Required only for POCs that enable custom domains (per use case README) |
+| **Terraform** | >= 1.x (`hashicorp/aws 6.44.0` in current lock files) |
+| **AWS CLI** | Profile `terraform` with permissions for the services in each POC |
+| **Python** | 3.x for Developer UC-00 Lambda |
+| **DNS** | Only if Developer UC-00 custom domain is enabled |
 
 ---
 
 ## Azure
 
-> **Status:** Coming soon. See [`azure/README.md`](azure/README.md). No Terraform modules or `use_case_*` stacks exist under `azure/` yet.
+> **Status:** Coming soon. See [`azure/README.md`](azure/README.md).
 
 ---
 
 ## Cost considerations
 
-Use cases are aimed at **AWS Free Tier**–friendly footprints where applicable:
+| Track | Notes |
+|-------|--------|
+| **Developer** | API Gateway, Lambda; ACM certs are free (DNS may cost). |
+| **CloudOps** | NAT Gateway, ALB, Multi-AZ RDS, and ASG instances often exceed strict free tier. |
 
-- API Gateway: REST API free tier allowances (see current AWS pricing docs).
-- Lambda: free tier for requests and compute (see current AWS pricing docs).
-- ACM: public certificates are free; DNS provider costs may apply.
-- EC2 module: constrained to `t2.micro` / `t3.micro` when used.
-
-> **Assumption:** The `terraform` AWS CLI profile targets a personal or sandbox account. UC-00 uses **local** Terraform state — no remote backend is configured in-repo. For collaboration, consider S3 + DynamoDB locking.
+> POCs use **local** Terraform state. For teams, consider S3 + DynamoDB locking.
