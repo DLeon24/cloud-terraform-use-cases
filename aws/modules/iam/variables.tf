@@ -1,3 +1,18 @@
+variable "environment" {
+  description = "Environment to deploy the resources"
+  type        = string
+}
+
+variable "project" {
+  description = "Project or use case identifier"
+  type        = string
+}
+
+variable "region" {
+  description = "AWS region"
+  type        = string
+}
+
 variable "iam_role_name" {
   description = "Name of the IAM role"
   type        = string
@@ -19,3 +34,16 @@ variable "managed_policy_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "create_instance_profile" {
+  description = "Whether to create an instance profile"
+  type        = bool
+  default     = false
+}
+
+variable "tags" {
+  description = "Tags for resources"
+  type        = map(string)
+  default     = {}
+}
+

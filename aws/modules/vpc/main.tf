@@ -3,7 +3,7 @@ resource "aws_vpc" "this" {
   enable_dns_hostnames = var.enable_dns_hostnames
   enable_dns_support   = var.enable_dns_support
   instance_tenancy     = "default"
-  tags                 = local.common_tags
+  tags                 = local.vpc_tags
 }
 
 resource "aws_subnet" "this" {
@@ -34,9 +34,7 @@ resource "aws_route_table_association" "this" {
 resource "aws_internet_gateway" "this" {
   count  = var.create_internet_gateway ? 1 : 0
   vpc_id = aws_vpc.this.id
-  tags = merge(local.common_tags, {
-    Name = "${local.prefix}-${var.region}-igw"
-  })
+  tags   = local.igw_tags
 }
 
 resource "aws_route" "public_internet" {
@@ -62,11 +60,9 @@ resource "aws_nat_gateway" "this" {
   for_each      = var.create_nat_gateway ? local.public_subnet_key_by_az : {}
   allocation_id = aws_eip.this[each.key].id
   subnet_id     = aws_subnet.this[each.value].id
-
   tags = merge(local.common_tags, {
     Name = "${local.prefix}-${each.key}-ngw"
   })
-
   depends_on = [aws_internet_gateway.this]
 }
 
@@ -79,3 +75,43 @@ resource "aws_route" "private_nat" {
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = aws_nat_gateway.this[each.value.availability_zone].id
 }
+
+resource "aws_security_group" "this" {
+  for_each    = { for sg in var.security_groups : sg.name => sg }
+  name        = "${local.full_prefix}-${each.key}-sg"
+  description = each.value.description
+  vpc_id      = aws_vpc.this.id
+  tags = merge(local.common_tags, {
+    Name = "${local.full_prefix}-${each.key}-sg"
+  })
+}
+
+resource "aws_vpc_security_group_ingress_rule" "this" {
+  for_each = { for item in local.security_group_inline_ingress : item.key => item }
+
+  security_group_id = aws_security_group.this[each.value.security_group_key].id
+  description       = each.value.description
+  from_port         = each.value.from_port
+  to_port           = each.value.to_port
+  ip_protocol       = each.value.ip_protocol
+
+  cidr_ipv4 = each.value.cidr_ipv4
+
+  referenced_security_group_id = (
+    each.value.referenced_security_group_key != null
+    ? aws_security_group.this[each.value.referenced_security_group_key].id
+    : null
+  )
+}
+
+resource "aws_vpc_security_group_egress_rule" "this" {
+  for_each = { for item in local.security_group_inline_egress : item.key => item }
+
+  security_group_id = aws_security_group.this[each.value.security_group_key].id
+  description       = each.value.description
+  from_port         = each.value.from_port
+  to_port           = each.value.to_port
+  ip_protocol       = each.value.ip_protocol
+  cidr_ipv4         = each.value.cidr_ipv4
+}
+

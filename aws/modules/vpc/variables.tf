@@ -52,8 +52,37 @@ variable "create_nat_gateway" {
   default     = false
 }
 
+
+variable "security_groups" {
+  description = "Security groups to create in the VPC module"
+  type = list(object({
+    name        = string
+    description = string
+    ingress_rules = optional(list(object({
+      name                          = string
+      description                   = string
+      from_port                     = number
+      to_port                       = number
+      ip_protocol                   = string
+      cidr_ipv4                     = optional(string, null)
+      referenced_security_group_key = optional(string, null)
+    })), [])
+    egress_rules = optional(list(object({
+      name        = string
+      description = string
+      from_port   = number
+      to_port     = number
+      ip_protocol = string
+      cidr_ipv4   = optional(string, null)
+    })), [])
+  }))
+}
+
+
 variable "tags" {
   description = "Tags for resources"
   type        = map(string)
   default     = {}
 }
+
+

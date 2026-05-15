@@ -32,3 +32,18 @@ output "eip_public_ip" {
   description = "Map of AZ to EIP public IP (empty if create_nat_gateway is false)"
   value       = { for az, eip in aws_eip.this : az => eip.public_ip }
 }
+
+output "security_group_ids" {
+  description = "Map of security group names to SG IDs"
+  value       = { for k, sg in aws_security_group.this : k => sg.id }
+}
+
+output "security_group_ingress_rule_ids" {
+  description = "Map of inline ingress rule keys (see local.security_group_inline_ingress) to aws_vpc_security_group_ingress_rule IDs"
+  value       = { for k, r in aws_vpc_security_group_ingress_rule.this : k => r.id }
+}
+
+output "security_group_egress_rule_ids" {
+  description = "Map of inline egress rule keys (see local.security_group_inline_egress) to aws_vpc_security_group_egress_rule IDs"
+  value       = { for k, r in aws_vpc_security_group_egress_rule.this : k => r.id }
+}

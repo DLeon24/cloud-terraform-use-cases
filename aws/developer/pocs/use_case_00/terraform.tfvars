@@ -1,4 +1,5 @@
 region            = "us-east-1"
+aws_profile       = "<your-aws-profile>"
 runtime           = "python3.14"
 handler           = "lambda_function.lambda_handler"
 iam_role_name     = "LambdaOrderRole"
@@ -11,4 +12,12 @@ domain_name       = "<your-domain-name>"
 tags = {
   Team  = "Infrastructure"
   Owner = "dleon24"
+}
+
+managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
+principal           = "apigateway.amazonaws.com"
+action              = "lambda:InvokeFunction"
+aliases = {
+  dev  = "$LATEST" // first $LATEST then the version number "2" changing the code in lambda_function.py.
+  prod = "1"
 }
